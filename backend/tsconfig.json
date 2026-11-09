@@ -11,10 +11,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "ES2023",
-    "types": [
-      "node",
-      "multer"
-    ],
+    "types": ["node", "multer"],
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": ".",
