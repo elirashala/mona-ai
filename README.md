@@ -1,123 +1,118 @@
 # Mona AI — Requests
 
-Import CSV requests, review validation errors, and download reports by date.
+A TypeScript app for importing service requests, reviewing invalid rows, and
+exporting reports by site and date. Built with React, NestJS, Prisma, and PostgreSQL.
 
-Requires **Node.js 24.15+** and **Docker with Compose v2**. Start Docker first.
-Run every command below from the **project root**.
+## Requirements
 
-```text
-backend/             API, Prisma, tests, and sample-data/
-frontend/            React application
-docker-compose.yml   PostgreSQL configuration
-README.md            Setup and application guide
-.gitignore           Ignore rules for both applications
-```
+- Node.js **24.15+**
+- Docker with Compose v2, running locally
 
-## 1. Start PostgreSQL
+Open each terminal at the project root.
+
+## 1. Start the database
 
 ```sh
 docker compose -p mona-requests up -d
 docker compose -p mona-requests ps
 ```
 
-Wait until PostgreSQL shows `healthy`. Database port: **5434**.
+Wait for PostgreSQL to show `healthy`. It uses port **5434** and stores data in a
+named Docker volume.
 
-## 2. Run the backend — terminal 1
+## 2. Start the backend
 
-First-time setup:
-
-```sh
-npm --prefix backend ci
-cp -n backend/.env.example backend/.env
-npm --prefix backend run prisma:deploy
-```
-
-Start the backend:
+In a separate terminal:
 
 ```sh
-npm --prefix backend run start:dev
+cd backend
+npm ci
+cp -n .env.example .env
+npm run prisma:deploy
+npm run start:dev
 ```
 
-API: **http://localhost:3001**. Prisma Client is generated automatically.
-On later runs, only the start command is needed.
+The API runs at **http://localhost:3001**. Prisma Client is generated automatically
+before startup. The environment file contains the local database connection.
 
-## 3. Run the frontend — terminal 2
+## 3. Start the frontend
 
-First-time setup:
+In another terminal:
 
 ```sh
-npm --prefix frontend ci
-cp -n frontend/.env.example frontend/.env
+cd frontend
+npm ci
+cp -n .env.example .env
+npm run dev
 ```
 
-Start the frontend:
+Open **http://localhost:5173**. `VITE_API_URL` in `frontend/.env` sets the API URL
+and defaults to `http://localhost:3001`. Restart Vite after changing it.
+
+The copy commands preserve existing `.env` files. After the first setup, start
+Docker and run only `npm run start:dev` in `backend/` and `npm run dev` in `frontend/`.
+
+## Use the app
+
+- **Import CSV:** upload `backend/sample-data/requests_2026-03.csv` and review the results.
+- **Reports:** choose a date range and download the site report as CSV. The default
+  is last calendar month; select **1–31 March 2026** for the supplied sample.
+- **Delete all data:** permanently clears saved requests and import results after confirmation.
+
+The sample produces **112 imported, 6 invalid, and 3 duplicate rows** on its first
+import. Reimporting creates no duplicate requests. The March report has **96 requests**.
+
+## Tests and builds
+
+Stop the dev servers with **Ctrl+C** first. Keep Docker running for integration tests.
+Run these commands in the existing backend terminal (`backend/`):
 
 ```sh
-npm --prefix frontend run dev
+npm test
+npm run lint
+npm run prisma:validate
+npm run build
+npm run test:integration
 ```
 
-Open **http://localhost:5173**. On later runs, only the start command is needed.
-The `cp -n` commands preserve existing `.env` files.
-The frontend API URL is configured by `VITE_API_URL` in `frontend/.env`;
-it defaults to `http://localhost:3001`.
+In the frontend terminal (`frontend/`):
 
-## 4. Use the app
+```sh
+npm test
+npm run lint
+npm run typecheck
+npm run build
+```
 
-- **Import CSV:** select `backend/sample-data/requests_2026-03.csv` and import it.
-- **Reports:** choose dates and click **Download CSV**. To check the supplied
-  file, select **1–31 March 2026**; the default is last calendar month.
-- **Delete all data:** clears saved requests and import results after confirmation.
+Integration tests roll back their database changes, preserving existing data.
 
-First import: **112 imported, 6 invalid, 3 duplicates**. Reimporting adds no
-request duplicates. The March report contains **96 requests**.
+## Stop the database
 
-## Stop
-
-Press **Ctrl+C** in each app terminal, then stop Docker services:
+After stopping both apps, run this in the project-root terminal:
 
 ```sh
 docker compose -p mona-requests down
 ```
 
-Saved database data is preserved. Nothing is seeded or imported automatically.
-
-## Tests and checks
-
-Keep Docker running and stop the backend dev server before build/integration checks.
-
-```sh
-npm --prefix backend test
-npm --prefix frontend test
-npm --prefix backend run lint
-npm --prefix frontend run lint
-npm --prefix frontend run typecheck
-npm --prefix backend run prisma:validate
-npm --prefix backend run build
-npm --prefix frontend run build
-npm --prefix backend run test:integration
-```
-
-Integration tests roll back their changes and preserve existing data.
+The named volume keeps saved data. No sample data is imported automatically.
 
 ## How it works
 
-- **Frontend:** React + TypeScript + Vite. Pages/components render the two tabs;
-  hooks handle state, `api/` handles HTTP, and `types/` and `utils/` hold shared helpers.
-- **Backend:** NestJS controllers call services and repositories. Prisma 7 accesses
-  PostgreSQL 17; schema and migrations live in `backend/prisma/`.
-- **Import:** parse semicolon CSVs with UTF-8/Windows-1252 accents and multiline
-  quoted fields. Follow `backend/sample-data/spec.md`: known sites/categories, real Swiss
-  dates, and positive amounts. Valid requests are saved; original values, errors,
-  and upload counts are retained separately for the results screen. No seed data.
-- **Duplicates:** trim/uppercase IDs; the first valid record wins. A primary key
-  and transaction lock prevent duplicates within a file and across uploads.
-- **Reports:** filter by request date, group by site, and sum CHF using database
-  decimals. The screen and CSV use the same inclusive date range. Confirming
-  **Delete all data** clears application records, leaving the schema intact.
+- **Frontend:** pages and components display the UI; hooks manage state and API calls.
+- **Backend:** controllers delegate to services and repositories. Prisma manages
+  database access; schema and migrations are in `backend/prisma/`.
+- **Validation:** follow `backend/sample-data/spec.md`. Handle semicolon CSVs,
+  UTF-8/Windows-1252 text, quoted multiline fields, real Swiss dates, and positive amounts.
+  Valid requests are saved; original values and validation errors are retained separately.
+- **Deduplication:** trim and uppercase IDs; the first valid record wins. A primary
+  key and transaction lock prevent duplicates within a file and across uploads.
+- **Reporting:** filter by request date and sum CHF using database decimals. Both
+  selected dates are included, and the screen and CSV use the same range.
 
 ## Submission
 
-The ZIP is only needed when submitting; it is not part of the running app.
-Include source, migrations, lockfiles, `.env.example`, and `backend/sample-data/`.
-Exclude `node_modules/`, `dist/`, generated Prisma Client, `.env`, and
-`*.tsbuildinfo` from the ZIP. `.gitignore` does not filter a manually created ZIP.
+Submit one ZIP under **25 MB** containing source, migrations, lockfiles,
+`.env.example` files, and `backend/sample-data/`.
+
+Exclude `.git/`, `node_modules/`, `dist/`, generated Prisma Client, `.env` files,
+and `*.tsbuildinfo`. A manual ZIP does not automatically follow `.gitignore`.
