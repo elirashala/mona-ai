@@ -1,6 +1,6 @@
 # Backend guidance
 
-Follow the root AGENTS.md, README.md, and sample-data/spec.md. Use the existing
+Follow ../README.md and sample-data/spec.md. Use the existing
 NestJS 12 provider/module conventions and Prisma 7 PostgreSQL driver adapter.
 Keep controllers thin, services injectable, and database access in repositories.
 All services, including PrismaService, belong in src/services/; generated client

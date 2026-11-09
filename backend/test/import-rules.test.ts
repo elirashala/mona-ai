@@ -188,7 +188,7 @@ describe('validation and duplicate policy', () => {
 });
 
 describe('unaltered supplied CSV', () => {
-  const fixture = readFileSync('../sample-data/requests_2026-03.csv');
+  const fixture = readFileSync('sample-data/requests_2026-03.csv');
   it('decodes legacy accents and preserves multiline fields and row numbers', () => {
     const parsed = parseCsv(fixture);
     expect(parsed.encoding).toBe('windows-1252');

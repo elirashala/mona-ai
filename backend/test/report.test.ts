@@ -9,7 +9,7 @@ import type { SiteReport } from '../src/types/report.types';
 
 describe('client control figures from the unchanged fixture', () => {
   const valid = evaluateRows(
-    parseCsv(readFileSync('../sample-data/requests_2026-03.csv')).rows,
+    parseCsv(readFileSync('sample-data/requests_2026-03.csv')).rows,
     new Set(),
   )
     .filter((row) => row.status === 'imported')

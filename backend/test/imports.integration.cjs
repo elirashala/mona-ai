@@ -1,5 +1,3 @@
-// Tests run inside a rolled-back transaction: repeated uploads leave no history
-// or request records behind in the configured development database.
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { Module } = require('@nestjs/common');
@@ -73,7 +71,7 @@ async function main() {
           try {
             await app.init();
             const api = request(app.getHttpServer());
-            const fixture = readFileSync('../sample-data/requests_2026-03.csv');
+            const fixture = readFileSync('sample-data/requests_2026-03.csv');
             const upload = () =>
               api
                 .post('/api/imports')
