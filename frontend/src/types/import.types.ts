@@ -1,4 +1,3 @@
-// Mirrors the JSON returned by the NestJS import endpoints.
 export type RowStatus = 'imported' | 'invalid' | 'duplicate'
 
 export interface ImportRow {
