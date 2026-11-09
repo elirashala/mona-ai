@@ -86,6 +86,15 @@ npm run build
 
 Integration tests roll back their database changes, preserving existing data.
 
+## Formatting
+
+Run these commands in either `backend/` or `frontend/`:
+
+```sh
+npm run format        # Format files with Prettier
+npm run format:check  # Check formatting without changing files
+```
+
 ## Stop the database
 
 After stopping both apps, run this in the project-root terminal:
